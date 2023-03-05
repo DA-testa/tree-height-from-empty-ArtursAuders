@@ -1,50 +1,70 @@
 import sys
 import threading
-import numpy
 
 
 def compute_height(n, parents):
-    # Write this function
-    max_height = 0
-    # Your code here
-    return max_height
+    # Create an array to store the height of each node
+    heights = [0] * n
+
+    # Find the height of each node by traversing the tree bottom-up
+    # Iterate through each node and compute its height
+    for node in range(n):
+        # Check if the node height has already been computed
+        if heights[node] != 0:
+            continue
+
+        # If the node has no parent, its height is 1
+        if parents[node] == -1:
+            heights[node] = 1
+        else:
+            # Otherwise, compute the parent's height and add 1
+            parent_height = compute_height(parents[node], parents)
+            heights[node] = parent_height + 1
+
+    # Return the maximum height
+    return max(heights)
+
 
 
 def main():
-    # ask the user for input type
-    input_type = input("Enter input type (F for file or K for keyboard): ").upper()
-    if input_type == 'F':
-        # ask the user for the filename
-        filename = input("Enter filename: ")
-        # check if the filename has the letter 'a'
-        if 'a' in filename:
-            print("Error: Filename contains the letter 'a'.")
-            return
-        try:
-            with open(filename, 'r') as f:
-                # read the number of elements
-                n = int(f.readline().strip())
-                # read the values and split them into an array
-                parents = list(map(int, f.readline().strip().split()))
-        except FileNotFoundError:
-            print("Error: File not found.")
-            return
-    elif input_type == 'K':
-        # read the number of elements
-        n = int(input("Enter number of elements: "))
-        # read the values and split them into an array
-        parents = list(map(int, input("Enter values: ").strip().split()))
+# Ask user for input method
+    input_method = input("Enter input method (K for keyboard or F for file): ")
+    
+    # Check if input method is valid
+    while input_method.upper() not in ['K', 'F']:
+        input_method = input("Invalid input method. Enter K or F: ")
+
+    # Get input from keyboard
+    if input_method.upper() == 'K':
+        # Input number of nodes
+        n = int(input("Enter number of nodes: "))
+
+        # Input parents array
+        parents = list(map(int, input("Enter parents array: ").split()))
+
+    # Get input from file
     else:
-        print("Error: Invalid input type.")
-        return
+        # Ask user for file name
+        file_name = input("Enter file name (without 'a' in name): ")
 
-    # call the function and output its result
-    print(compute_height(n, parents))
+        # Check if file name is valid
+        while 'a' in file_name or file_name.upper() == 'README':
+            file_name = input("Invalid file name. Enter another name: ")
 
+        # Try to read file and get input
+        try:
+            with open('folder/' + file_name, 'r', encoding='utf-8') as file:
+                n = int(file.readline())
+                parents = list(map(int, file.readline().split()))
 
-# In Python, the default limit on recursion depth is rather low,
-# so raise it here for this problem. Note that to take advantage
-# of bigger stack, we have to launch the computation in a new thread.
-sys.setrecursionlimit(107)  # max depth of recursion
-threading.stack_size(227)   # new thread will get stack of such size
+        # Catch file not found error
+        except FileNotFoundError:
+            print("File not found.")
+            return
+
+    # Compute and print tree height
+    print("Tree height:", compute_height(n, parents))
+
+sys.setrecursionlimit(10**7)  # max depth of recursion
+threading.stack_size(2**27)   # new thread will get stack of such size
 threading.Thread(target=main).start()
